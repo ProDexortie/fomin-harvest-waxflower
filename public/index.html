@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FoodExpress - Доставка еды</title>
+  <link rel="stylesheet" href="/styles/main.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="logo">
+        <a href="/">
+          <span class="logo-icon"><i class="fas fa-utensils"></i></span>
+          <span class="logo-text">FoodExpress</span>
+        </a>
+      </div>
+      <nav>
+        <ul>
+          <li><a href="/" class="nav-link" data-page="menu">Меню</a></li>
+          <li><a href="/tracking" class="nav-link" data-page="tracking">Отследить заказ</a></li>
+          <li><a href="/cart" class="nav-link" data-page="cart">
+            <i class="fas fa-shopping-cart"></i> 
+            <span class="cart-count">0</span>
+          </a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main id="app">
+    <!-- Контент будет загружаться динамически -->
+    <div id="page-content" class="container"></div>
+  </main>
+
+  <footer>
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-logo">
+          <span class="logo-icon"><i class="fas fa-utensils"></i></span>
+          <span class="logo-text">FoodExpress</span>
+        </div>
+        <div class="footer-info">
+          <p>© 2025 FoodExpress - Сервис доставки еды</p>
+          <p>Учебный проект</p>
+        </div>
+        <div class="footer-links">
+          <a href="/admin" class="nav-link" data-page="admin">Админ-панель</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Темплейты страниц -->
+  <!-- Шаблон страницы меню -->
+  <template id="menu-template">
+    <section class="page menu-page">
+      <h1>Меню</h1>
+      <div class="dishes-container">
+        <!-- Блюда будут загружены динамически -->
+      </div>
+    </section>
+  </template>
+
+  <!-- Шаблон страницы корзины -->
+  <template id="cart-template">
+    <section class="page cart-page">
+      <h1>Корзина</h1>
+      <div class="cart-empty hidden">
+        <p>Ваша корзина пуста</p>
+        <a href="/" class="btn btn-primary">Перейти в меню</a>
+      </div>
+      <div class="cart-content">
+        <div class="cart-items">
+          <!-- Элементы корзины будут загружены динамически -->
+        </div>
+        <div class="cart-summary">
+          <h2>Итого</h2>
+          <div class="cart-total">
+            <p>Сумма заказа: <span class="total-amount">0</span> ₽</p>
+          </div>
+          <button class="btn btn-primary checkout-btn">Оформить заказ</button>
+        </div>
+      </div>
+    </section>
+  </template>
+
+  <!-- Шаблон страницы оформления заказа -->
+  <template id="checkout-template">
+    <section class="page checkout-page">
+      <h1>Оформление заказа</h1>
+      <form id="checkout-form">
+        <div class="form-group">
+          <label for="customer-name">Ваше имя</label>
+          <input type="text" id="customer-name" name="customerName" required>
+        </div>
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" required>
+        </div>
+        <div class="form-group">
+          <label for="phone">Номер телефона</label>
+          <input type="tel" id="phone" name="phone" required>
+        </div>
+        <div class="form-group">
+          <label for="address">Адрес доставки</label>
+          <textarea id="address" name="address" required></textarea>
+        </div>
+        <div class="order-summary">
+          <h2>Ваш заказ</h2>
+          <div class="order-items">
+            <!-- Элементы заказа будут загружены динамически -->
+          </div>
+          <div class="order-total">
+            <p>Сумма заказа: <span class="total-amount">0</span> ₽</p>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Подтвердить заказ</button>
+      </form>
+    </section>
+  </template>
+
+  <!-- Шаблон страницы успешного заказа -->
+  <template id="order-success-template">
+    <section class="page order-success-page">
+      <div class="success-message">
+        <i class="fas fa-check-circle"></i>
+        <h1>Заказ успешно оформлен!</h1>
+        <p>Номер вашего заказа: <span class="order-number"></span></p>
+        <p>Информация о заказе отправлена на ваш email.</p>
+        <p>Вы можете отслеживать статус заказа на странице отслеживания.</p>
+        <div class="success-actions">
+          <a href="/tracking" class="btn btn-primary nav-link" data-page="tracking">Отследить заказ</a>
+          <a href="/" class="btn btn-secondary nav-link" data-page="menu">Вернуться в меню</a>
+        </div>
+      </div>
+    </section>
+  </template>
+
+  <!-- Шаблон страницы отслеживания заказа -->
+  <template id="tracking-template">
+    <section class="page tracking-page">
+      <h1>Отследить заказ</h1>
+      <div class="tracking-form">
+        <form id="tracking-form">
+          <div class="form-group">
+            <label for="order-number">Номер заказа</label>
+            <input type="text" id="order-number" name="orderNumber" required>
+          </div>
+          <button type="submit" class="btn btn-primary">Проверить статус</button>
+        </form>
+      </div>
+      <div class="tracking-result hidden">
+        <!-- Результат отслеживания будет загружен динамически -->
+      </div>
+    </section>
+  </template>
+
+  <!-- Шаблон страницы администратора -->
+  <template id="admin-template">
+    <section class="page admin-page">
+      <h1>Панель администратора</h1>
+      <div class="admin-login">
+        <h2>Вход в панель администратора</h2>
+        <form id="admin-login-form">
+          <div class="form-group">
+            <label for="username">Имя пользователя</label>
+            <input type="text" id="username" name="username" required>
+          </div>
+          <div class="form-group">
+            <label for="password">Пароль</label>
+            <input type="password" id="password" name="password" required>
+          </div>
+          <button type="submit" class="btn btn-primary">Войти</button>
+        </form>
+      </div>
+      <div class="admin-panel hidden">
+        <div class="admin-header">
+          <h2>Управление заказами</h2>
+          <button id="admin-logout" class="btn btn-secondary">Выйти</button>
+        </div>
+        <div class="orders-list">
+          <!-- Список заказов будет загружен динамически -->
+        </div>
+      </div>
+    </section>
+  </template>
+
+  <!-- Скрипты -->
+  <script src="/scripts/main.js"></script>
+  <script src="/scripts/router.js"></script>
+  <script src="/scripts/menu.js"></script>
+  <script src="/scripts/cart.js"></script>
+  <script src="/scripts/checkout.js"></script>
+  <script src="/scripts/tracking.js"></script>
+  <script src="/scripts/admin.js"></script>
+  <script src="/scripts/active-orders.js"></script>
+</body>
+</html>
