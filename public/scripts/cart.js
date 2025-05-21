@@ -200,6 +200,7 @@ const Cart = {
         this.updateQuantity(item.id, item.quantity - 1);
       });
       
+      
       increaseBtn.addEventListener('click', () => {
         this.updateQuantity(item.id, item.quantity + 1);
       });
