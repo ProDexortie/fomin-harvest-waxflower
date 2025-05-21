@@ -99,6 +99,35 @@ a:hover {
   background-color: var(--danger-color);
 }
 
+.btn-danger:hover {
+  background-color: #c0392b;
+}
+
+.btn-warning {
+  background-color: var(--warning-color);
+}
+
+.btn-warning:hover {
+  background-color: #e67e22;
+}
+
+.btn-link {
+  background: none;
+  color: var(--primary-color);
+  padding: 5px 10px;
+  text-decoration: underline;
+}
+
+.btn-link:hover {
+  background: none;
+  color: var(--primary-dark);
+}
+
+.btn-sm {
+  padding: 5px 10px;
+  font-size: 14px;
+}
+
 .form-group {
   margin-bottom: 20px;
 }
@@ -244,6 +273,22 @@ main {
   margin-bottom: 10px;
 }
 
+.dish-rating {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.dish-rating .stars {
+  color: var(--warning-color);
+  margin-right: 10px;
+}
+
+.review-count {
+  color: var(--light-text);
+  font-size: 14px;
+}
+
 .dish-description {
   color: var(--light-text);
   margin-bottom: 15px;
@@ -262,10 +307,15 @@ main {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 10px;
 }
 
 .add-to-cart {
   flex-grow: 1;
+}
+
+.view-details {
+  flex-shrink: 0;
 }
 
 /* Корзина страница */
@@ -360,8 +410,18 @@ main {
   margin-bottom: 20px;
 }
 
-.total-amount {
+.total-amount,
+.discount-amount,
+.final-amount {
   color: var(--primary-color);
+}
+
+.final-price {
+  font-weight: 700;
+  font-size: 20px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed #eee;
 }
 
 .checkout-btn {
@@ -389,6 +449,35 @@ main {
   box-shadow: var(--box-shadow);
 }
 
+.promo-code-section {
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #eee;
+}
+
+.promo-form {
+  margin: 15px 0;
+}
+
+.promo-form-field {
+  display: flex;
+  align-items: center;
+}
+
+.promo-form-field input {
+  flex-grow: 1;
+  margin-right: 10px;
+  border: 1px solid #ddd;
+  border-radius: var(--border-radius);
+  padding: 10px 15px;
+}
+
+.promo-form-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .order-summary {
   margin-top: 30px;
   padding-top: 20px;
@@ -409,6 +498,13 @@ main {
   font-size: 18px;
   font-weight: 600;
   margin: 20px 0;
+}
+
+.discount-info {
+  padding: 15px;
+  background-color: #fff8e1;
+  border-radius: var(--border-radius);
+  margin-bottom: 20px;
 }
 
 /* Успешное оформление заказа */
@@ -491,6 +587,10 @@ main {
 
 .status-Принят {
   background-color: var(--warning-color);
+}
+
+.status-Отменен {
+  background-color: var(--danger-color);
 }
 
 .order-progress {
@@ -578,18 +678,63 @@ main {
   margin-bottom: 20px;
 }
 
-.orders-list {
+/* Табы админ-панели */
+.admin-tabs {
   background-color: white;
   border-radius: var(--border-radius);
-  padding: 20px;
+  overflow: hidden;
   box-shadow: var(--box-shadow);
+  margin-bottom: 30px;
+}
+
+.tabs-nav {
+  display: flex;
+  list-style: none;
+  background-color: #f1f1f1;
+  border-bottom: 1px solid #ddd;
+}
+
+.tab-item {
+  padding: 15px 20px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: var(--transition);
+}
+
+.tab-item:hover {
+  background-color: #e7e7e7;
+}
+
+.tab-item.active {
+  background-color: white;
+  border-bottom: 3px solid var(--primary-color);
+  color: var(--primary-color);
+}
+
+.tab-content {
+  padding: 20px;
+}
+
+.tab-pane {
+  display: none;
+}
+
+.tab-pane.active {
+  display: block;
+}
+
+/* Стили для списка заказов */
+.orders-list {
+  width: 100%;
 }
 
 .order-card {
+  background-color: white;
   border: 1px solid #eee;
   border-radius: var(--border-radius);
   padding: 20px;
   margin-bottom: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .order-card:last-child {
@@ -607,6 +752,7 @@ main {
 
 .order-number-field {
   font-weight: 700;
+  font-size: 18px;
 }
 
 .order-date {
@@ -623,6 +769,14 @@ main {
 
 .admin-order-items {
   margin-bottom: 15px;
+  padding: 15px;
+  background-color: #f9f9f9;
+  border-radius: var(--border-radius);
+}
+
+.admin-order-items h3 {
+  margin-bottom: 10px;
+  font-size: 16px;
 }
 
 .admin-order-item {
@@ -631,8 +785,105 @@ main {
   margin-bottom: 5px;
 }
 
-.admin-status-select {
+.admin-order-total {
   margin-top: 15px;
+  padding-top: 10px;
+  border-top: 1px dashed #ddd;
+}
+
+.admin-order-discount {
+  margin-top: 10px;
+  padding: 10px;
+  background-color: #fff8e1;
+  border-radius: var(--border-radius);
+  font-size: 14px;
+}
+
+.admin-order-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #eee;
+}
+
+.admin-status-select {
+  flex-grow: 1;
+  margin-right: 20px;
+}
+
+.admin-status-select select {
+  padding: 8px 12px;
+  border-radius: var(--border-radius);
+  border: 1px solid #ddd;
+  font-family: 'Montserrat', sans-serif;
+  background-color: white;
+}
+
+.status-new {
+  border-color: var(--warning-color) !important;
+}
+
+.status-processing {
+  border-color: var(--primary-color) !important;
+}
+
+.status-delivery {
+  border-color: var(--secondary-color) !important;
+}
+
+.status-delivered {
+  border-color: var(--success-color) !important;
+}
+
+.status-canceled {
+  border-color: var(--danger-color) !important;
+}
+
+/* Управление промокодами */
+.promo-management {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+}
+
+.promo-form-container,
+.promo-codes-list {
+  background-color: #f9f9f9;
+  border-radius: var(--border-radius);
+  padding: 20px;
+}
+
+.promo-codes-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.promo-codes-table th,
+.promo-codes-table td {
+  padding: 10px;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+}
+
+.promo-codes-table th {
+  font-weight: 600;
+  color: var(--light-text);
+}
+
+.promo-active {
+  color: var(--success-color);
+  font-weight: 600;
+}
+
+.promo-inactive {
+  color: var(--light-text);
+}
+
+.promo-actions {
+  display: flex;
+  gap: 5px;
 }
 
 /* Активные заказы */
@@ -730,6 +981,21 @@ footer {
     margin-left: 0;
     margin-right: 20px;
   }
+  
+  .promo-management {
+    grid-template-columns: 1fr;
+  }
+  
+  .admin-order-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .admin-status-select {
+    margin-right: 0;
+    margin-bottom: 10px;
+    width: 100%;
+  }
 }
 
 @media (max-width: 576px) {
@@ -763,5 +1029,30 @@ footer {
   .cart-item-remove {
     margin-left: 0;
     margin-top: 10px;
+  }
+  
+  .promo-form-field {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .promo-form-field input {
+    margin-right: 0;
+    margin-bottom: 10px;
+  }
+  
+  .modal-content {
+    width: 95%;
+    margin: 5% auto;
+    padding: 15px;
+  }
+  
+  .dish-details {
+    flex-direction: column;
+  }
+  
+  .dish-image-container {
+    margin-right: 0;
+    margin-bottom: 20px;
   }
 }
