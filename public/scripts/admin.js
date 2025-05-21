@@ -30,6 +30,9 @@ const Admin = {
     
     // Настройка формы создания промокода
     this.setupPromoForm();
+    
+    // Настройка формы блюда
+    this.setupDishForm();
   },
   
   // Настройка табов в админ-панели
@@ -58,9 +61,82 @@ const Admin = {
           this.loadOrders();
         } else if (tabId === 'promo') {
           this.loadPromoCodes();
+        } else if (tabId === 'dishes') {
+          this.loadDishes();
         }
       });
     });
+  },
+  
+  // Настройка формы создания/редактирования блюда
+  setupDishForm: function() {
+    const dishForm = document.getElementById('admin-dish-form');
+    
+    if (!dishForm) return;
+    
+    // Переменная для отслеживания режима формы (создание/редактирование)
+    this.dishFormMode = 'create';
+    this.currentDishId = null;
+    
+    dishForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      
+      // Получаем данные формы
+      const formData = new FormData(dishForm);
+      const name = formData.get('name');
+      const description = formData.get('description');
+      const price = parseFloat(formData.get('price'));
+      const image = formData.get('image');
+      
+      // Проверяем обязательные поля
+      if (!name || !description || isNaN(price)) {
+        App.showMessage('Пожалуйста, заполните все обязательные поля', 'warning');
+        return;
+      }
+      
+      // Создаем объект блюда
+      const dishData = {
+        name,
+        description,
+        price,
+        image: image || '/images/default-dish.jpg'
+      };
+      
+      // В зависимости от режима формы создаем или обновляем блюдо
+      if (this.dishFormMode === 'create') {
+        this.createDish(dishData);
+      } else {
+        this.updateDish(this.currentDishId, dishData);
+      }
+    });
+    
+    // Кнопка отмены редактирования
+    const cancelEditBtn = document.getElementById('cancel-edit-dish');
+    if (cancelEditBtn) {
+      cancelEditBtn.addEventListener('click', () => {
+        this.resetDishForm();
+      });
+    }
+  },
+  
+  // Сброс формы блюда (переход в режим создания)
+  resetDishForm: function() {
+    const dishForm = document.getElementById('admin-dish-form');
+    const submitBtn = dishForm.querySelector('button[type="submit"]');
+    const cancelBtn = document.getElementById('cancel-edit-dish');
+    const formTitle = document.querySelector('.dish-form-title');
+    
+    // Сбрасываем форму
+    dishForm.reset();
+    
+    // Меняем режим формы на создание
+    this.dishFormMode = 'create';
+    this.currentDishId = null;
+    
+    // Обновляем UI
+    submitBtn.innerHTML = 'Добавить блюдо';
+    cancelBtn.classList.add('hidden');
+    formTitle.textContent = 'Добавить новое блюдо';
   },
   
   // Настройка формы создания промокода
@@ -228,6 +304,301 @@ const Admin = {
     })
     .catch(error => {
       console.error('Ошибка при выходе:', error);
+    });
+  },
+  
+  // Загрузка списка блюд
+  loadDishes: function() {
+    const dishesList = document.querySelector('.dishes-list');
+    
+    if (!dishesList) return;
+    
+    // Показываем индикатор загрузки
+    dishesList.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Загрузка блюд...</div>';
+    
+    fetch('/api/dishes')
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Ошибка при получении блюд');
+        }
+        return response.json();
+      })
+      .then(dishes => {
+        this.renderDishes(dishes);
+      })
+      .catch(error => {
+        console.error('Ошибка при загрузке блюд:', error);
+        dishesList.innerHTML = `<div class="error">Ошибка при загрузке блюд: ${error.message}</div>`;
+      });
+  },
+  
+  // Отображение списка блюд
+// Обновленная версия метода renderDishes без столбца рейтинга
+renderDishes: function(dishes) {
+  const dishesList = document.querySelector('.dishes-list');
+  
+  if (!dishesList) return;
+  
+  // Если блюд нет, показываем сообщение
+  if (dishes.length === 0) {
+    dishesList.innerHTML = '<div class="no-dishes">Блюд пока нет</div>';
+    return;
+  }
+  
+  // Очищаем список
+  dishesList.innerHTML = '';
+  
+  // Создаем таблицу для блюд
+  const table = document.createElement('table');
+  table.className = 'dishes-table';
+  
+  // Создаем заголовок таблицы
+  const thead = document.createElement('thead');
+  thead.innerHTML = `
+    <tr>
+      <th>Изображение</th>
+      <th>Название</th>
+      <th>Описание</th>
+      <th>Цена</th>
+      <th>Действия</th>
+    </tr>
+  `;
+  table.appendChild(thead);
+  
+  // Создаем тело таблицы
+  const tbody = document.createElement('tbody');
+  
+  // Добавляем строки для каждого блюда
+  dishes.forEach(dish => {
+    const tr = document.createElement('tr');
+    
+    // Обрезаем длинное описание для показа в таблице
+    const shortDescription = dish.description.length > 100 
+      ? dish.description.substring(0, 100) + '...' 
+      : dish.description;
+    
+    tr.innerHTML = `
+      <td>
+        <img src="${dish.image}" alt="${dish.name}" class="dish-thumbnail" onerror="this.src='/images/default-dish.jpg'">
+      </td>
+      <td><strong>${dish.name}</strong></td>
+      <td class="dish-description-cell" title="${dish.description}">${shortDescription}</td>
+      <td>${App.formatPrice(dish.price)} ₽</td>
+      <td>
+        <div class="dish-actions">
+          <button class="btn btn-sm btn-secondary edit-dish" data-id="${dish._id}">
+            <i class="fas fa-edit"></i> Редактировать
+          </button>
+          <button class="btn btn-sm btn-danger delete-dish" data-id="${dish._id}">
+            <i class="fas fa-trash-alt"></i> Удалить
+          </button>
+        </div>
+      </td>
+    `;
+    tbody.appendChild(tr);
+    
+    // Добавляем обработчики событий
+    const editBtn = tr.querySelector('.edit-dish');
+    editBtn.addEventListener('click', () => {
+      this.editDish(dish);
+    });
+    
+    const deleteBtn = tr.querySelector('.delete-dish');
+    deleteBtn.addEventListener('click', () => {
+      // Показываем подтверждение
+      if (confirm(`Вы уверены, что хотите удалить блюдо "${dish.name}"? Это действие нельзя отменить.`)) {
+        this.deleteDish(dish._id);
+      }
+    });
+  });
+  
+  table.appendChild(tbody);
+  dishesList.appendChild(table);
+},
+  
+  // Генерация HTML для отображения звездного рейтинга
+  generateStarRating: function(rating) {
+    const fullStars = Math.floor(rating);
+    const halfStar = rating % 1 >= 0.5;
+    const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
+    
+    let starsHtml = '';
+    
+    // Полные звезды
+    for (let i = 0; i < fullStars; i++) {
+      starsHtml += '<i class="fas fa-star"></i>';
+    }
+    
+    // Половина звезды (если нужно)
+    if (halfStar) {
+      starsHtml += '<i class="fas fa-star-half-alt"></i>';
+    }
+    
+    // Пустые звезды
+    for (let i = 0; i < emptyStars; i++) {
+      starsHtml += '<i class="far fa-star"></i>';
+    }
+    
+    return starsHtml;
+  },
+  
+  // Редактирование блюда
+  editDish: function(dish) {
+    const dishForm = document.getElementById('admin-dish-form');
+    const submitBtn = dishForm.querySelector('button[type="submit"]');
+    const cancelBtn = document.getElementById('cancel-edit-dish');
+    const formTitle = document.querySelector('.dish-form-title');
+    
+    // Заполняем форму данными блюда
+    dishForm.elements.name.value = dish.name;
+    dishForm.elements.description.value = dish.description;
+    dishForm.elements.price.value = dish.price;
+    dishForm.elements.image.value = dish.image;
+    
+    // Меняем режим формы на редактирование
+    this.dishFormMode = 'edit';
+    this.currentDishId = dish._id;
+    
+    // Обновляем UI
+    submitBtn.innerHTML = 'Сохранить изменения';
+    cancelBtn.classList.remove('hidden');
+    formTitle.textContent = 'Редактировать блюдо';
+    
+    // Прокручиваем к форме
+    dishForm.scrollIntoView({ behavior: 'smooth' });
+  },
+  
+  // Создание нового блюда
+  createDish: function(dishData) {
+    // Показываем индикатор загрузки
+    const submitBtn = document.querySelector('#admin-dish-form button[type="submit"]');
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Создание...';
+    }
+    
+    fetch('/api/admin/dishes', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(dishData)
+    })
+    .then(response => {
+      if (!response.ok) {
+        if (response.status === 401) {
+          this.isLoggedIn = false;
+          this.updateView();
+          throw new Error('Необходима авторизация');
+        }
+        throw new Error('Ошибка при создании блюда');
+      }
+      return response.json();
+    })
+    .then(data => {
+      // Очищаем форму
+      document.getElementById('admin-dish-form').reset();
+      
+      // Показываем сообщение
+      App.showMessage(`Блюдо "${dishData.name}" успешно создано`, 'success');
+      
+      // Перезагружаем список блюд
+      this.loadDishes();
+    })
+    .catch(error => {
+      console.error('Ошибка при создании блюда:', error);
+      App.showMessage('Ошибка при создании блюда: ' + error.message, 'error');
+    })
+    .finally(() => {
+      // Восстанавливаем кнопку
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = 'Добавить блюдо';
+      }
+    });
+  },
+  
+  // Обновление блюда
+  updateDish: function(dishId, dishData) {
+    // Показываем индикатор загрузки
+    const submitBtn = document.querySelector('#admin-dish-form button[type="submit"]');
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Обновление...';
+    }
+    
+    fetch(`/api/admin/dishes/${dishId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(dishData)
+    })
+    .then(response => {
+      if (!response.ok) {
+        if (response.status === 401) {
+          this.isLoggedIn = false;
+          this.updateView();
+          throw new Error('Необходима авторизация');
+        }
+        throw new Error('Ошибка при обновлении блюда');
+      }
+      return response.json();
+    })
+    .then(data => {
+      // Сбрасываем форму
+      this.resetDishForm();
+      
+      // Показываем сообщение
+      App.showMessage(`Блюдо "${dishData.name}" успешно обновлено`, 'success');
+      
+      // Перезагружаем список блюд
+      this.loadDishes();
+    })
+    .catch(error => {
+      console.error('Ошибка при обновлении блюда:', error);
+      App.showMessage('Ошибка при обновлении блюда: ' + error.message, 'error');
+    })
+    .finally(() => {
+      // Восстанавливаем кнопку
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = 'Сохранить изменения';
+      }
+    });
+  },
+  
+  // Удаление блюда
+  deleteDish: function(dishId) {
+    fetch(`/api/admin/dishes/${dishId}`, {
+      method: 'DELETE'
+    })
+    .then(response => {
+      if (!response.ok) {
+        if (response.status === 401) {
+          this.isLoggedIn = false;
+          this.updateView();
+          throw new Error('Необходима авторизация');
+        }
+        throw new Error('Ошибка при удалении блюда');
+      }
+      return response.json();
+    })
+    .then(data => {
+      // Показываем сообщение
+      App.showMessage('Блюдо успешно удалено', 'success');
+      
+      // Перезагружаем список блюд
+      this.loadDishes();
+      
+      // Если мы редактировали это блюдо, сбрасываем форму
+      if (this.currentDishId === dishId) {
+        this.resetDishForm();
+      }
+    })
+    .catch(error => {
+      console.error('Ошибка при удалении блюда:', error);
+      App.showMessage('Ошибка при удалении блюда: ' + error.message, 'error');
     });
   },
   

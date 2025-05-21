@@ -177,7 +177,7 @@
     </section>
   </template>
 
-  <!-- Шаблон страницы администратора -->
+  <!-- Шаблон страницы администратора - Обновлённый с управлением блюдами -->
   <template id="admin-template">
     <section class="page admin-page">
       <h1>Панель администратора</h1>
@@ -197,17 +197,18 @@
       </div>
       <div class="admin-panel hidden">
         <div class="admin-header">
-          <h2>Управление заказами</h2>
+          <h2>Административная панель</h2>
           <button id="admin-logout" class="btn btn-secondary">Выйти</button>
         </div>
-        
+
         <!-- Таб меню для админ-панели -->
         <div class="admin-tabs">
           <ul class="tabs-nav">
             <li class="tab-item active" data-tab="orders">Заказы</li>
+            <li class="tab-item" data-tab="dishes">Меню</li>
             <li class="tab-item" data-tab="promo">Промокоды</li>
           </ul>
-          
+
           <div class="tab-content">
             <!-- Таб заказов -->
             <div class="tab-pane active" id="orders-tab">
@@ -215,7 +216,45 @@
                 <!-- Список заказов будет загружен динамически -->
               </div>
             </div>
-            
+
+            <!-- Таб блюд -->
+            <div class="tab-pane" id="dishes-tab">
+              <div class="dish-management">
+                <div class="dish-form-container">
+                  <h3 class="dish-form-title">Добавить новое блюдо</h3>
+                  <form id="admin-dish-form">
+                    <div class="form-group">
+                      <label for="dish-name">Название блюда</label>
+                      <input type="text" id="dish-name" name="name" required placeholder="Например: Пицца Маргарита">
+                    </div>
+                    <div class="form-group">
+                      <label for="dish-description">Описание</label>
+                      <textarea id="dish-description" name="description" required placeholder="Опишите блюдо, его состав и особенности"></textarea>
+                    </div>
+                    <div class="form-group">
+                      <label for="dish-price">Цена (₽)</label>
+                      <input type="number" id="dish-price" name="price" min="1" step="1" required>
+                    </div>
+                    <div class="form-group">
+                      <label for="dish-image">URL изображения</label>
+                      <input type="text" id="dish-image" name="image" placeholder="Например: /images/pizza-margherita.jpg">
+                      <small class="form-hint">Если не указано, будет использовано изображение по умолчанию</small>
+                    </div>
+                    <div class="form-actions">
+                      <button type="submit" class="btn btn-primary">Добавить блюдо</button>
+                      <button type="button" id="cancel-edit-dish" class="btn btn-secondary hidden">Отменить</button>
+                    </div>
+                  </form>
+                </div>
+                <div class="dishes-list-container">
+                  <h3>Существующие блюда</h3>
+                  <div class="dishes-list">
+                    <!-- Список блюд будет загружен динамически -->
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <!-- Таб промокодов -->
             <div class="tab-pane" id="promo-tab">
               <div class="promo-management">
