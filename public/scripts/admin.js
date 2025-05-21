@@ -662,6 +662,15 @@ const Admin = {
   
   // Активация/деактивация промокода
   togglePromoCode: function(promoId, active, rowElement) {
+    // Находим кнопку переключения в строке
+    const toggleBtn = rowElement.querySelector('.toggle-promo');
+
+    // Блокируем кнопку на время запроса
+    if (toggleBtn) {
+      toggleBtn.disabled = true;
+      toggleBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Обработка...';
+    }
+
     fetch(`/api/admin/promo-codes/${promoId}`, {
       method: 'PUT',
       headers: {
@@ -676,33 +685,48 @@ const Admin = {
       return response.json();
     })
     .then(data => {
-      if (data.success) {
+      if (data.success || data._id) { // Проверка на успешный ответ (может вернуться success или обновленный объект)
         // Обновляем отображение промокода
-        const toggleBtn = rowElement.querySelector('.toggle-promo');
         const statusCell = rowElement.querySelector('td:nth-child(4)');
-        
+
         // Обновляем атрибут data-active
         toggleBtn.setAttribute('data-active', active);
-        
+
         // Обновляем текст кнопки
         toggleBtn.innerHTML = active ? 
           '<i class="fas fa-pause"></i> Деактивировать' : 
           '<i class="fas fa-play"></i> Активировать';
-        
+
         // Обновляем класс кнопки
         toggleBtn.className = `btn btn-sm ${active ? 'btn-warning toggle-promo' : 'btn-success toggle-promo'}`;
-        
+
         // Обновляем статус
         statusCell.className = active ? 'promo-active' : 'promo-inactive';
         statusCell.textContent = active ? 'Активен' : 'Неактивен';
-        
+
         // Показываем сообщение
         App.showMessage(`Промокод ${active ? 'активирован' : 'деактивирован'}`, 'success');
+      } else {
+        throw new Error('Сервер вернул некорректный ответ');
       }
     })
     .catch(error => {
       console.error('Ошибка при обновлении статуса промокода:', error);
       App.showMessage('Ошибка при обновлении статуса промокода', 'error');
+
+      // Восстанавливаем исходное состояние кнопки
+      if (toggleBtn) {
+        toggleBtn.innerHTML = active ? 
+          '<i class="fas fa-pause"></i> Деактивировать' : 
+          '<i class="fas fa-play"></i> Активировать';
+        toggleBtn.disabled = false;
+      }
+    })
+    .finally(() => {
+      // Разблокируем кнопку
+      if (toggleBtn) {
+        toggleBtn.disabled = false;
+      }
     });
   },
   

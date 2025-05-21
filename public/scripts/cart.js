@@ -18,8 +18,18 @@ const Cart = {
   // Инициализация страницы корзины
   initPage: function() {
     console.log('Инициализация страницы корзины');
-    this.renderCartItems();
-    this.setupCheckoutButton();
+    
+    // Проверяем, находимся ли мы на странице корзины
+    if (document.querySelector('.cart-page')) {
+      // Загружаем данные корзины из localStorage (на всякий случай)
+      this.loadFromStorage();
+      
+      // Отображаем содержимое корзины
+      this.renderCartItems();
+      
+      // Настраиваем кнопку оформления заказа
+      this.setupCheckoutButton();
+    }
   },
   
   // Загрузка элементов корзины из localStorage
@@ -138,7 +148,13 @@ const Cart = {
     const cartContent = document.querySelector('.cart-content');
     const totalAmount = document.querySelector('.total-amount');
     
-    if (!cartItems || !cartEmpty || !cartContent || !totalAmount) return;
+    if (!cartItems || !cartEmpty || !cartContent || !totalAmount) {
+      console.error('Не найдены элементы корзины на странице');
+      return;
+    }
+    
+    // Перезагружаем данные из localStorage перед отображением
+    this.loadFromStorage();
     
     // Проверяем, пуста ли корзина
     if (this.items.length === 0) {
