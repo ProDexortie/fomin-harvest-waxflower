@@ -110,6 +110,19 @@
           <label for="address">Адрес доставки</label>
           <textarea id="address" name="address" required></textarea>
         </div>
+        
+        <div class="promo-code-section">
+          <h3>У вас есть промокод?</h3>
+          <form id="promo-form" class="promo-form">
+            <div class="promo-form-field">
+              <input type="text" id="promo-code" name="promoCode" placeholder="Введите промокод">
+              <div class="promo-form-actions">
+                <button type="submit" class="btn btn-secondary">Применить</button>
+              </div>
+            </div>
+          </form>
+        </div>
+        
         <div class="order-summary">
           <h2>Ваш заказ</h2>
           <div class="order-items">
@@ -117,6 +130,10 @@
           </div>
           <div class="order-total">
             <p>Сумма заказа: <span class="total-amount">0</span> ₽</p>
+          </div>
+          <div class="discount-info hidden">
+            <p>Скидка: <span class="discount-amount">0</span> ₽</p>
+            <p class="final-price">Итого к оплате: <span class="final-amount">0</span> ₽</p>
           </div>
         </div>
         <button type="submit" class="btn btn-primary">Подтвердить заказ</button>
@@ -183,8 +200,52 @@
           <h2>Управление заказами</h2>
           <button id="admin-logout" class="btn btn-secondary">Выйти</button>
         </div>
-        <div class="orders-list">
-          <!-- Список заказов будет загружен динамически -->
+        
+        <!-- Таб меню для админ-панели -->
+        <div class="admin-tabs">
+          <ul class="tabs-nav">
+            <li class="tab-item active" data-tab="orders">Заказы</li>
+            <li class="tab-item" data-tab="promo">Промокоды</li>
+          </ul>
+          
+          <div class="tab-content">
+            <!-- Таб заказов -->
+            <div class="tab-pane active" id="orders-tab">
+              <div class="orders-list">
+                <!-- Список заказов будет загружен динамически -->
+              </div>
+            </div>
+            
+            <!-- Таб промокодов -->
+            <div class="tab-pane" id="promo-tab">
+              <div class="promo-management">
+                <div class="promo-form-container">
+                  <h3>Создать новый промокод</h3>
+                  <form id="admin-promo-form">
+                    <div class="form-group">
+                      <label for="promo-code-name">Код</label>
+                      <input type="text" id="promo-code-name" name="code" required placeholder="Например: SUMMER25">
+                    </div>
+                    <div class="form-group">
+                      <label for="promo-discount">Размер скидки (%)</label>
+                      <input type="number" id="promo-discount" name="discount" min="1" max="100" required>
+                    </div>
+                    <div class="form-group">
+                      <label for="promo-expires">Срок действия (опционально)</label>
+                      <input type="date" id="promo-expires" name="expiresAt">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Создать промокод</button>
+                  </form>
+                </div>
+                <div class="promo-codes-list">
+                  <h3>Существующие промокоды</h3>
+                  <div class="promo-list-container">
+                    <!-- Список промокодов будет загружен динамически -->
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>

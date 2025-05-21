@@ -66,8 +66,8 @@ const Tracking = {
       .then(order => {
         this.displayOrderInfo(order);
         
-        // Добавляем или обновляем заказ в активных заказах, если он еще не доставлен
-        if (order.status !== 'Доставлен') {
+        // Добавляем или обновляем заказ в активных заказах, если он еще не доставлен и не отменен
+        if (order.status !== 'Доставлен' && order.status !== 'Отменен') {
           ActiveOrders.addOrder(order);
         }
       })
@@ -103,6 +103,9 @@ const Tracking = {
     const statuses = ['Принят', 'Готовится', 'В доставке', 'Доставлен'];
     const currentStatusIndex = statuses.indexOf(order.status);
     
+    // Проверяем, отменен ли заказ
+    const isOrderCancelled = order.status === 'Отменен';
+    
     // Создаем HTML для отображения информации о заказе
     trackingResult.innerHTML = `
       <div class="order-details">
@@ -110,34 +113,70 @@ const Tracking = {
         <p>Дата заказа: ${App.formatDate(order.createdAt)}</p>
         <p>Имя: ${order.customerName}</p>
         <p>Телефон: ${order.phone}</p>
+        <p>Email: ${order.email || 'Не указан'}</p>
         <p>Адрес доставки: ${order.address}</p>
         <p>Сумма заказа: ${App.formatPrice(order.totalAmount)} ₽</p>
+        ${order.comment ? `<p>Комментарий к заказу: ${order.comment}</p>` : ''}
       </div>
       
       <div class="order-status">
         <h3>Статус заказа:</h3>
-        <span class="status-label status-${order.status}">${order.status}</span>
+        <span class="status-label status-${order.status.replace(/\s+/g, '-')}">${order.status}</span>
+        
+        ${isOrderCancelled ? `
+          <div class="cancelled-info">
+            <p>Заказ был отменен. Если у вас возникли вопросы, пожалуйста, свяжитесь с нами.</p>
+          </div>
+        ` : ''}
+        
+        ${!isOrderCancelled && order.canCancel ? `
+          <div class="cancel-order-container">
+            <button class="btn btn-danger cancel-order-btn" data-order="${order.orderNumber}">
+              Отменить заказ
+            </button>
+            <p class="cancel-note">Заказ можно отменить до момента его передачи в доставку</p>
+          </div>
+        ` : ''}
       </div>
       
-      <div class="order-progress">
-        ${statuses.map((status, index) => {
-          let statusClass = '';
-          if (index < currentStatusIndex) {
-            statusClass = 'step-complete';
-          } else if (index === currentStatusIndex) {
-            statusClass = 'step-active';
-          }
-          
-          return `
-            <div class="progress-step ${statusClass}">
-              <div class="step-icon">
-                ${index < currentStatusIndex ? '<i class="fas fa-check"></i>' : (index === currentStatusIndex ? '<i class="fas fa-circle"></i>' : index + 1)}
+      ${!isOrderCancelled ? `
+        <div class="order-progress">
+          ${statuses.map((status, index) => {
+            let stepClass = '';
+            
+            // Для статуса "Доставлен" все шаги должны быть завершены
+            if (order.status === 'Доставлен') {
+              stepClass = 'step-complete';
+            } else {
+              // Иначе применяем обычную логику
+              if (index < currentStatusIndex) {
+                stepClass = 'step-complete';
+              } else if (index === currentStatusIndex) {
+                stepClass = 'step-active';
+              }
+            }
+            
+            // Определяем иконку для шага
+            let iconHtml = '';
+            if (stepClass === 'step-complete') {
+              iconHtml = '<i class="fas fa-check"></i>';
+            } else if (stepClass === 'step-active') {
+              iconHtml = '<i class="fas fa-circle"></i>';
+            } else {
+              iconHtml = (index + 1).toString();
+            }
+            
+            return `
+              <div class="progress-step ${stepClass}">
+                <div class="step-icon">
+                  ${iconHtml}
+                </div>
+                <div class="step-label">${status}</div>
               </div>
-              <div class="step-label">${status}</div>
-            </div>
-          `;
-        }).join('')}
-      </div>
+            `;
+          }).join('')}
+        </div>
+      ` : ''}
       
       <div class="order-items-list">
         <h3>Состав заказа:</h3>
@@ -148,5 +187,60 @@ const Tracking = {
         </ul>
       </div>
     `;
+    
+    // Добавляем обработчики событий для кнопки отмены заказа, если она есть
+    const cancelBtn = trackingResult.querySelector('.cancel-order-btn');
+    if (cancelBtn) {
+      cancelBtn.addEventListener('click', () => {
+        this.cancelOrder(order.orderNumber);
+      });
+    }
+  },
+  
+  // Отмена заказа
+  cancelOrder: function(orderNumber) {
+    // Показываем диалог подтверждения
+    if (!confirm('Вы уверены, что хотите отменить заказ? Это действие нельзя отменить.')) {
+      return;
+    }
+    
+    // Блокируем кнопку отмены
+    const cancelBtn = document.querySelector('.cancel-order-btn');
+    if (cancelBtn) {
+      cancelBtn.disabled = true;
+      cancelBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Отмена...';
+    }
+    
+    fetch(`/api/orders/${orderNumber}/cancel`, {
+      method: 'POST'
+    })
+    .then(response => {
+      if (!response.ok) {
+        if (response.status === 400) {
+          return response.json().then(data => {
+            throw new Error(data.error || 'Этот заказ нельзя отменить');
+          });
+        }
+        throw new Error('Ошибка при отмене заказа');
+      }
+      return response.json();
+    })
+    .then(data => {
+      if (data.success) {
+        App.showMessage('Заказ успешно отменен', 'success');
+        
+        // Обновляем информацию о заказе
+        this.trackOrder(orderNumber);
+        
+        // Обновляем статус в активных заказах
+        ActiveOrders.updateOrderStatus(orderNumber, 'Отменен');
+      } else {
+        App.showMessage('Ошибка при отмене заказа: ' + (data.error || 'Неизвестная ошибка'), 'error');
+      }
+    })
+    .catch(error => {
+      console.error('Ошибка при отмене заказа:', error);
+      App.showMessage(error.message || 'Ошибка при отмене заказа', 'error');
+    });
   }
 };
