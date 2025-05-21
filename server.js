@@ -235,6 +235,101 @@ app.post('/api/dishes/:id/reviews', async (req, res) => {
   }
 });
 
+// Создание нового блюда (для админ-панели)
+app.post('/api/admin/dishes', (req, res) => {
+  // Проверка авторизации администратора
+  if (!req.session.isAdmin) {
+    return res.status(401).json({ error: 'Необходима авторизация' });
+  }
+  
+  const { name, description, price, image } = req.body;
+  
+  // Проверка обязательных полей
+  if (!name || !description || !price) {
+    return res.status(400).json({ error: 'Не все обязательные поля заполнены' });
+  }
+  
+  // Создаем новое блюдо
+  const newDish = new Dish({
+    name,
+    description,
+    price: parseFloat(price),
+    image: image || '/images/default-dish.jpg',
+    rating: 0,
+    reviewCount: 0
+  });
+  
+  newDish.save()
+    .then(dish => res.status(201).json(dish))
+    .catch(err => {
+      console.error('Ошибка при создании блюда:', err);
+      res.status(500).json({ error: 'Ошибка при создании блюда' });
+    });
+});
+
+// Обновление блюда (для админ-панели)
+app.put('/api/admin/dishes/:id', (req, res) => {
+  // Проверка авторизации администратора
+  if (!req.session.isAdmin) {
+    return res.status(401).json({ error: 'Необходима авторизация' });
+  }
+  
+  const { name, description, price, image } = req.body;
+  
+  // Проверка обязательных полей
+  if (!name || !description || !price) {
+    return res.status(400).json({ error: 'Не все обязательные поля заполнены' });
+  }
+  
+  // Обновляем блюдо
+  Dish.findByIdAndUpdate(
+    req.params.id,
+    {
+      name,
+      description,
+      price: parseFloat(price),
+      image: image || '/images/default-dish.jpg'
+    },
+    { new: true }
+  )
+  .then(dish => {
+    if (!dish) {
+      return res.status(404).json({ error: 'Блюдо не найдено' });
+    }
+    res.json(dish);
+  })
+  .catch(err => {
+    console.error('Ошибка при обновлении блюда:', err);
+    res.status(500).json({ error: 'Ошибка при обновлении блюда' });
+  });
+});
+
+// Удаление блюда (для админ-панели)
+app.delete('/api/admin/dishes/:id', (req, res) => {
+  // Проверка авторизации администратора
+  if (!req.session.isAdmin) {
+    return res.status(401).json({ error: 'Необходима авторизация' });
+  }
+  
+  // Удаляем блюдо
+  Dish.findByIdAndDelete(req.params.id)
+    .then(dish => {
+      if (!dish) {
+        return res.status(404).json({ error: 'Блюдо не найдено' });
+      }
+      
+      // Также удаляем все отзывы к блюду
+      return Review.deleteMany({ dish: req.params.id })
+        .then(() => {
+          res.json({ success: true, message: 'Блюдо и отзывы к нему успешно удалены' });
+        });
+    })
+    .catch(err => {
+      console.error('Ошибка при удалении блюда:', err);
+      res.status(500).json({ error: 'Ошибка при удалении блюда' });
+    });
+});
+
 // Проверка промокода
 app.post('/api/promo-check', async (req, res) => {
   try {
